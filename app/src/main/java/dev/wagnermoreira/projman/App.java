@@ -20,9 +20,14 @@ public class App {
         UserDao userDao = new JdbcUserDao();
 
         try {
-            ApiServer server = new ApiServer(8080, userDao);
+            int port = 8080;
+            String envPort = System.getenv("PROJMAN_PORT");
+            if (envPort != null && !envPort.isBlank()) {
+                try { port = Integer.parseInt(envPort.trim()); } catch (NumberFormatException ignored) {}
+            }
+            ApiServer server = new ApiServer(port, userDao);
             server.start();
-            System.out.println("API running on http://localhost:8080 (GET/POST /users)");
+            System.out.println("API running on http://localhost:" + port + " (GET/POST /users)");
         } catch (Exception e) {
             throw new RuntimeException("Failed to start API server", e);
         }
