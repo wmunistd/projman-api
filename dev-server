@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+PORT=8080
+if lsof -n -i4TCP:$PORT -sTCP:LISTEN -P >/dev/null 2>&1; then
+  lsof -n -i4TCP:$PORT -sTCP:LISTEN -P | awk 'NR>1{print $2}' | xargs -r kill -9 || true
+fi
+
+exec watchexec \
+  -r \
+  --watch app/src/main/java \
+  --watch app/src/main/resources \
+  --watch app/build.gradle \
+  --watch settings.gradle \
+  --exts java,gradle \
+  -- ./gradlew :app:run
