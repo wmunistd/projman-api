@@ -6,9 +6,9 @@ public class Project {
     private Long id;
     private String name;
     private String description;
-    private String startDate; // ISO-8601 date stored as TEXT
-    private String endDate;   // ISO-8601 date stored as TEXT
-    private String status;    // PLANNED | IN_PROGRESS | DONE | CANCELLED
+    private String startDate;
+    private String endDate;
+    private String status; // PLANNED | IN_PROGRESS | DONE | CANCELLED
     private Long managerUserId; 
     private List<Long> teamIds;
 

@@ -3,7 +3,7 @@ package dev.wagnermoreira.projman.api.dto;
 public class TaskDtos {
     public static class TaskCreateRequest {
         public String title;
-        public String status; // optional; default PLANNED
+        public String status; // opcional, default PLANNED
         public Long projectId;
         public Long assigneeId;
     }
