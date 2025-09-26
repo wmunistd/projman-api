@@ -81,11 +81,11 @@ public class Database {
             st.execute(createProjects);
             st.execute(createProjectTeams);
             st.execute(createTasks);
-            // Try to add manager_user_id column if existing DB lacks it
+            // Tenta adicionar a coluna manager_user_id se o banco de dados não tiver
             try (Statement st2 = conn.createStatement()) {
                 st2.execute("ALTER TABLE projects ADD COLUMN manager_user_id INTEGER");
             } catch (SQLException ignored) {
-                // Column already exists; ignore
+                // Coluna manager_user_id já existe
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize database schema", e);

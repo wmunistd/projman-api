@@ -9,7 +9,7 @@ public class Project {
     private String startDate; // ISO-8601 date stored as TEXT
     private String endDate;   // ISO-8601 date stored as TEXT
     private String status;    // PLANNED | IN_PROGRESS | DONE | CANCELLED
-    private Long managerUserId; // FK users.id (nullable)
+    private Long managerUserId; 
     private List<Long> teamIds;
 
     public Project(Long id, String name, String description, String startDate, String endDate, String status, Long managerUserId, List<Long> teamIds) {

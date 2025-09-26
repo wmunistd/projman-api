@@ -5,8 +5,8 @@ cd "$(dirname "$0")"
 
 export PROJMAN_DB="projman-test.db"
 export PROJMAN_PORT=${PROJMAN_PORT:-18080}
-# Clear previous test DB
+# Limpa o test DB anterior
 ./clear-test-db || true
 
-# Start auto-reloading server on the test DB and test port
+# Inicia o servidor com auto-reload na porta de teste
 ./dev-server

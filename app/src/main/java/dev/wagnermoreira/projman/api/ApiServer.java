@@ -233,7 +233,7 @@ public class ApiServer {
 
     private static void applyCors(HttpExchange exchange) {
         Headers h = exchange.getResponseHeaders();
-        // Allow any origin for local dev/testing
+        // Permite qualquer origem para dev/testing local
         h.add("Access-Control-Allow-Origin", "*");
         h.add("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
         h.add("Access-Control-Allow-Headers", "Content-Type, Accept");
