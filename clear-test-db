@@ -2,12 +2,16 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
+DB_NAME=${PROJMAN_DB:-projman-test.db}
+# If PROJMAN_DB is a bare filename, place it under app/
+case "$DB_NAME" in
+  */*) DB_PATH="$DB_NAME" ;;
+  *) DB_PATH="app/$DB_NAME" ;;
+esac
 
-DB_FILE=${PROJMAN_DB:-projman-test.db}
-
-if [ -f "$DB_FILE" ]; then
-  rm -f "$DB_FILE"
-  echo "Removed $DB_FILE"
+if [ -f "$DB_PATH" ]; then
+  rm -f "$DB_PATH"
+  echo "Removed $DB_PATH"
 else
-  echo "No test DB to remove ($DB_FILE)"
+  echo "No test DB to remove ($DB_PATH)"
 fi

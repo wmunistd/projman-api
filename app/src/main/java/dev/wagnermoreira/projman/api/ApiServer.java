@@ -105,23 +105,44 @@ public class ApiServer {
         }
 
         private void handleCreate(HttpExchange exchange) throws IOException {
-            UserCreateRequest in = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), UserCreateRequest.class);
-            if (in == null || in.fullName == null || in.email == null || in.username == null || in.password == null || in.role == null) {
-                respondJson(exchange, 400, "{\"error\":\"missing fields\"}\n");
-                return;
-            }
-            String hash = PasswordHasher.hash(in.password);
-            User user = User.ofNew(in.fullName, in.cpf, in.email, in.jobTitle, in.username, hash, UserRole.valueOf(in.role));
-            long id = userDao.insert(user);
+            try {
+                UserCreateRequest in = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), UserCreateRequest.class);
+                if (in == null || in.fullName == null || in.fullName.isBlank() ||
+                        in.cpf == null || in.cpf.isBlank() ||
+                        in.email == null || in.email.isBlank() ||
+                        in.jobTitle == null || in.jobTitle.isBlank() ||
+                        in.username == null || in.username.isBlank() ||
+                        in.password == null || in.password.isBlank() ||
+                        in.role == null || in.role.isBlank()) {
+                    respondJson(exchange, 400, "{\"error\":\"missing fields\"}\n");
+                    return;
+                }
 
-            UserResponse r = new UserResponse();
-            r.id = id;
-            r.fullName = user.getFullName();
-            r.email = user.getEmail();
-            r.jobTitle = user.getJobTitle();
-            r.username = user.getUsername();
-            r.role = user.getRole().name();
-            respondJson(exchange, 201, gson.toJson(r));
+                String hash = PasswordHasher.hash(in.password);
+                User user = User.ofNew(in.fullName, in.cpf, in.email, in.jobTitle, in.username, hash, UserRole.valueOf(in.role));
+                long id = userDao.insert(user);
+
+                UserResponse r = new UserResponse();
+                r.id = id;
+                r.fullName = user.getFullName();
+                r.email = user.getEmail();
+                r.jobTitle = user.getJobTitle();
+                r.username = user.getUsername();
+                r.role = user.getRole().name();
+                respondJson(exchange, 201, gson.toJson(r));
+            } catch (Exception e) {
+                Throwable root = e;
+                while (root.getCause() != null) {
+                    root = root.getCause();
+                }
+                String msg = root.getMessage();
+                if (msg == null || msg.isBlank()) {
+                    msg = "failed";
+                }
+                msg = msg.replace("\\", "\\\\").replace("\"", "\\\"");
+                int status = msg.toLowerCase().contains("unique constraint failed") ? 409 : 400;
+                respondJson(exchange, status, "{\"error\":\"" + msg + "\"}\n");
+            }
         }
     }
 

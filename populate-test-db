@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+DB_NAME=${PROJMAN_DB:-projman-test.db}
+case "$DB_NAME" in
+  */*) DB_PATH="$DB_NAME" ;;
+  *) DB_PATH="app/$DB_NAME" ;;
+esac
+
+echo "Populating test database: $DB_PATH"
+
+# Aguardar a API ficar disponível (com retry)
+echo "Waiting for API to be ready..."
+for i in {1..10}; do
+    if curl -s http://localhost:${PROJMAN_PORT:-18080}/health >/dev/null 2>&1; then
+        echo "API is ready!"
+        break
+    fi
+    echo "Attempt $i/10: API not ready, waiting 3 seconds..."
+    sleep 3
+done
+
+# Verificar uma última vez se a API está respondendo
+if ! curl -s http://localhost:${PROJMAN_PORT:-18080}/health >/dev/null 2>&1; then
+    echo "ERROR: API failed to start after 30 seconds"
+    exit 1
+fi
+
+# Criar usuários de teste
+echo "Creating test users..."
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullName": "Admin User",
+    "cpf": "12345678901",
+    "email": "admin@test.com",
+    "jobTitle": "Administrator",
+    "username": "admin",
+    "password": "admin123",
+    "role": "ADMIN"
+  }' >/dev/null || echo "Failed to create admin user (may already exist)"
+
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullName": "John Manager",
+    "cpf": "98765432109",
+    "email": "manager@test.com",
+    "jobTitle": "Project Manager",
+    "username": "manager",
+    "password": "manager123",
+    "role": "MANAGER"
+  }' >/dev/null || echo "Failed to create manager user (may already exist)"
+
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullName": "Alice Developer",
+    "cpf": "11122233344",
+    "email": "developer@test.com",
+    "jobTitle": "Software Developer",
+    "username": "developer",
+    "password": "dev123",
+    "role": "MEMBER"
+  }' >/dev/null || echo "Failed to create developer user (may already exist)"
+
+# Criar equipes de teste
+echo "Creating test teams..."
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/teams \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Development Team",
+    "description": "Main development team",
+    "memberIds": [2, 3]
+  }' >/dev/null || echo "Failed to create team (may already exist)"
+
+# Criar projeto de teste
+echo "Creating test project..."
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/projects \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Project",
+    "description": "Project for E2E testing",
+    "startDate": "2024-01-01",
+    "endDate": "2024-12-31",
+    "status": "ACTIVE",
+    "managerUserId": 2,
+    "teamIds": [1]
+  }' >/dev/null || echo "Failed to create project (may already exist)"
+
+# Criar tasks de teste
+echo "Creating test tasks..."
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Setup Database",
+    "status": "DONE",
+    "projectId": 1,
+    "assigneeId": 3
+  }' >/dev/null || echo "Failed to create task 1 (may already exist)"
+
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Implement API",
+    "status": "IN_PROGRESS",
+    "projectId": 1,
+    "assigneeId": 3
+  }' >/dev/null || echo "Failed to create task 2 (may already exist)"
+
+curl -s -X POST http://localhost:${PROJMAN_PORT:-18080}/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Write Tests",
+    "status": "PLANNED",
+    "projectId": 1,
+    "assigneeId": 2
+  }' >/dev/null || echo "Failed to create task 3 (may already exist)"
+
+echo "Test database populated successfully!"
